@@ -1,0 +1,109 @@
+/* ==========================================================================
+   Invitation card — front face ("Card front — print" mockup)
+   Sized with container query units (cqw = 1% of card width) so typography
+   scales with the card. Colours come from the tokens on .scene.
+   ========================================================================== */
+.invite {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16cqw 8cqw 6.5cqw;
+  color: var(--card-ink);
+  text-align: center;
+  background: var(--card-paper);
+}
+
+/* Hairline frame, inset like a printed border */
+.invite::before {
+  content: '';
+  position: absolute;
+  inset: 4cqw;
+  border: 1px solid var(--card-rule);
+  pointer-events: none;
+}
+
+.invite__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.invite__kicker,
+.invite__venue,
+.invite__when,
+.invite__brand-name {
+  margin: 0;
+  font-family: 'Montserrat', 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+  text-transform: uppercase;
+  line-height: 1.6;
+}
+
+.invite__kicker {
+  font-size: clamp(10px, 2.4cqw, 12px);
+  letter-spacing: 0.3em;
+  /* optical centring: cancel trailing letter-spacing */
+  padding-left: 0.3em;
+}
+
+.invite__name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 5cqw 0 9cqw;
+  font-family: 'Pinyon Script', 'Great Vibes', cursive;
+  font-weight: 400;
+  font-size: clamp(44px, 17cqw, 80px);
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+/* Staggered lines: first word set left, the rest stepped right */
+.invite__name--split span:first-child {
+  transform: translateX(-16%);
+}
+
+.invite__name--split span:last-child {
+  transform: translateX(18%);
+}
+
+.invite__venue {
+  font-size: clamp(10px, 2.4cqw, 12px);
+  letter-spacing: 0.26em;
+  padding-left: 0.26em;
+}
+
+.invite__when {
+  display: flex;
+  flex-direction: column;
+  margin-top: 2.6cqw;
+  font-size: clamp(10px, 2.2cqw, 11px);
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  padding-left: 0.2em;
+  line-height: 1.7;
+  font-variant-numeric: lining-nums;
+}
+
+.invite__brand {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.6cqw;
+}
+
+.invite__mark {
+  width: clamp(16px, 4.6cqw, 22px);
+  height: auto;
+  color: var(--card-ink-soft);
+}
+
+.invite__brand-name {
+  font-size: clamp(9px, 1.9cqw, 10px);
+  letter-spacing: 0.26em;
+  padding-left: 0.26em;
+  color: var(--card-ink-soft);
+}

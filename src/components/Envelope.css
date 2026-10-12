@@ -1,0 +1,478 @@
+/* ==========================================================================
+   Envelope scene — design tokens
+   Brand values sampled from complyonai.com:
+     --brand-blue  #171FB4  hero background (light theme, also meta theme-color)
+     --brand-ink   #070810  hero background (dark theme)
+   ========================================================================== */
+.scene {
+  --brand-blue: #171fb4;
+  --brand-ink: #070810;
+
+  /* Gold/brass — seal crack lines */
+  --seal-gold-light: #f0d48e;
+  --seal-gold: #c9a24a;
+  --seal-gold-dark: #8e6b24;
+  --seal-gold-deep: #5c4214;
+  --crack-color: #2e1f06;
+  --seal-cream: #f8ecd0;
+  /* Handwritten "ComplyOn AI" on the flap — the seal's gold as soft ink */
+  --flap-ink: #dcc28e;
+
+  /* Seal's stamped field, sampled from the photo (lit from top-left) —
+     painted over the original monogram. */
+  --seal-field-light: #e4cb9f;
+  --seal-field: #cba975;
+  --seal-field-dark: #bd9862;
+
+  /* Paper colours sampled from envelope.jpg around the seal — used to
+     patch the area the seal covered once it fades out. */
+  --patch-flap: #112850;
+  --patch-body: #0a1d41;
+  --patch-shadow: #03091a;
+
+  /* Envelope interior and the flap's inside face */
+  --env-inside: #06102a;
+  --flap-lining-hinge: #0a1938;
+  --flap-lining-tip: #0e2149;
+
+  /* Card front ("Card front — print" mockup) */
+  --card-paper: #f3f0e8;
+  --card-ink: #13224f;
+  --card-ink-soft: #4a5068;
+  --card-rule: #dedbd3;
+
+  /* Card back ("Card back — details & RSVP" mockup) */
+  --back-navy: #0f2350;
+  --back-heading: #ffffff;
+  --back-text: #dfe5f3;
+  --back-muted: #a9b4d6;
+  --back-gold: #c9a45c;
+  --back-rule: rgba(255, 255, 255, 0.18);
+  --back-rule-strong: rgba(201, 164, 92, 0.6);
+
+  /* Crop window of the photo — keep in sync with CLIP_WHOLE in Envelope.jsx:
+     inset(26.8% 10.7% 28% 10.7%) of a 736×920 image. */
+  --crop-x: 10.7;
+  --crop-top: 26.8;
+  --crop-bottom: 28;
+
+  /* Envelope (~1.39:1). Height-bounded so the open flap (0.66 × envelope
+     height above it) plus envelope plus invitation line and button fit:
+     (100svh − 13rem) / 1.66 × 1.39. */
+  --env-w: min(88vw, 30rem, calc((100svh - 13rem) * 0.838));
+  --env-h: calc(var(--env-w) / 1.3912);
+
+  /* Spacing between logo, envelope and the invitation line/button */
+  --scene-gap: clamp(2.5rem, 7vh, 4rem);
+
+  /* Letterhead logo (trimmed artwork, ~2.08:1): 72px desktop, scaling down
+     with width on phones and with height on short landscape screens */
+  --logo-h: clamp(36px, min(12vw, 9svh), 72px);
+  --logo-gap: clamp(2.5rem, 6vh, 3.5rem);
+
+  /* Card: 5:7 portrait like the mockup (taller on narrow phones, below),
+     bounded so it plus the "turn over" button fit the viewport. */
+  --card-ratio: 1.4;
+  --card-w: min(92vw, 26rem, calc((100svh - 6.5rem) / var(--card-ratio)));
+
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--scene-gap);
+  padding: 1.5rem 1rem calc(1.5rem + env(safe-area-inset-bottom));
+  overflow: hidden;
+  color: #fff;
+  background: var(--brand-ink);
+  isolation: isolate;
+}
+
+/* Film-grain overlay: fractal noise tile at ~4.5%, just enough to break up
+   banding in the glow on near-black without reading as texture. */
+.scene::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+.stage,
+.cta {
+  position: relative;
+  z-index: 1;
+}
+
+/* Narrow phones: a slightly taller card so the full details/RSVP copy fits
+   at a readable size (the 5:7 print ratio would overflow below ~375px). */
+@media (max-width: 420px) {
+  .scene {
+    --card-ratio: 1.55;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Stage / envelope
+   The .envelope box is exactly the crop window; each photo layer is the
+   full image, offset so the crop window lines up with that box.
+   -------------------------------------------------------------------------- */
+.stage {
+  width: var(--env-w);
+}
+
+/* Letterhead brand mark (white on transparent — shown as-is, no filters) */
+.brand-logo {
+  position: relative;
+  z-index: 1;
+  display: block;
+  height: var(--logo-h);
+  width: auto;
+  /* The opened flap needs 0.66 × envelope height of headroom; the logo and
+     its gap fill part of it (the logo has faded out by then), the rest sits
+     above the logo. */
+  margin-top: max(0px, calc(var(--env-h) * 0.66 - var(--logo-h) - var(--logo-gap)));
+  /* Logo → envelope spacing is --logo-gap, not the scene's flex gap */
+  margin-bottom: calc(var(--logo-gap) - var(--scene-gap));
+  max-width: 80vw;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+/* Navy spotlight centred behind the envelope, fading to the near-black edges */
+.stage__glow {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--env-h) / 2);
+  width: max(240vw, 1600px);
+  height: max(200vh, 1400px);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    rgba(34, 58, 132, 0.55) 0%,
+    rgba(22, 40, 104, 0.34) 18%,
+    rgba(14, 26, 72, 0.16) 38%,
+    rgba(9, 14, 40, 0.06) 60%,
+    transparent 80%
+  );
+}
+
+.envelope {
+  position: relative;
+  width: 100%;
+  /* (736 × 78.6%) / (920 × 45.2%) */
+  aspect-ratio: 578.5 / 415.84;
+  perspective: 1200px;
+  perspective-origin: 50% 0%;
+  transition: transform 400ms cubic-bezier(0.33, 0, 0.15, 1);
+}
+
+.envelope--closed {
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .envelope--closed:hover {
+    transform: translateY(-3px);
+  }
+}
+
+.envelope__shadow {
+  position: absolute;
+  inset: 2% 1% -1%;
+  border-radius: 4px;
+  /* Tight contact shadow + a large, diffuse navy-black shadow so the
+     envelope reads as floating in space */
+  box-shadow:
+    0 6px 14px -6px rgba(0, 0, 0, 0.5),
+    0 24px 48px -16px rgba(0, 0, 0, 0.6),
+    0 50px 110px -20px rgba(2, 6, 22, 0.75);
+  pointer-events: none;
+}
+
+.envelope__inside {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #030817, var(--env-inside) 60%);
+}
+
+.env-layer {
+  position: absolute;
+  width: calc(100% * 100 / (100 - 2 * var(--crop-x)));
+  left: calc(-100% * var(--crop-x) / (100 - 2 * var(--crop-x)));
+  top: calc(-100% * var(--crop-top) / (100 - var(--crop-top) - var(--crop-bottom)));
+  aspect-ratio: 736 / 920;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* Stacking (bottom → top): inside 0 · open flap 1 · card slot 2 ·
+   pocket / whole 3 · flap while folding 4 · seal 5 · card in front 6 */
+.env-layer--pocket,
+.env-layer--whole {
+  z-index: 3;
+}
+
+.env-layer--seal {
+  z-index: 5;
+}
+
+.env-layer--flap {
+  transform-style: preserve-3d;
+}
+
+.flap__face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Lining faces the other way; mirrored on Y so its outline lines up after
+   the 180° fold on X (the flap is symmetric about the centre line). */
+.flap__face--back {
+  transform: rotateY(180deg);
+}
+
+/* Uniform scale only — width/height match the layer, which has the image's aspect ratio */
+.env-layer__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.env-layer__overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.seal__crack,
+.seal__crack-light {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.seal__crack {
+  stroke: var(--crack-color);
+  stroke-width: 1.6;
+}
+
+/* Script inscription on the flap (sized in image px via the SVG viewBox) */
+.flap-ink {
+  font-family: 'Allura', 'Pinyon Script', cursive;
+  fill: var(--flap-ink);
+  fill-opacity: 0.92;
+  letter-spacing: 0.01em;
+}
+
+/* Thin lit edge beside each crack so it reads as cut into the wax */
+.seal__crack-light {
+  stroke: var(--seal-gold-light);
+  stroke-width: 0.9;
+  stroke-opacity: 0.7;
+}
+
+/* --------------------------------------------------------------------------
+   Card
+   -------------------------------------------------------------------------- */
+.card-slot {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  /* Hide the tucked card below the envelope's bottom edge only (a little
+     inside it, behind the pocket, so no sliver bleeds through the photo edge) */
+  clip-path: inset(-600% -300% 3% -300%);
+  pointer-events: none;
+}
+
+.card-slot--front {
+  z-index: 6;
+  clip-path: none;
+}
+
+/* Centred on the envelope; Framer moves it from there (y / scale / rotate) */
+.card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--card-w);
+  height: calc(var(--card-w) * var(--card-ratio));
+  margin-left: calc(var(--card-w) / -2);
+  margin-top: calc(var(--card-w) * var(--card-ratio) / -2);
+}
+
+.card__hover {
+  position: absolute;
+  inset: 0;
+  perspective: 1800px;
+  transition: transform 300ms cubic-bezier(0.33, 0, 0.15, 1);
+}
+
+.card--interactive .card__hover {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+@media (hover: hover) {
+  .card--interactive .card__hover:hover {
+    transform: scale(1.015);
+  }
+}
+
+.card__flipper {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.card__face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 3px;
+  container-type: size;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 30px 60px -24px rgba(0, 0, 0, 0.75),
+    0 10px 20px -10px rgba(0, 0, 0, 0.4);
+}
+
+.card__face--back {
+  transform: rotateY(180deg);
+}
+
+.card__turn {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 14px);
+  transform: translateX(-50%);
+  min-height: 44px;
+  padding: 0 1.25rem;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: rgba(255, 255, 255, 0.72);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: color 200ms ease;
+}
+
+.card__turn:hover:not(:disabled) {
+  color: #fff;
+}
+
+.card__turn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.card__turn:disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Invitation line + button
+   -------------------------------------------------------------------------- */
+.cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+}
+
+.cta__line {
+  margin: 0;
+  font-family: 'Montserrat', 'Inter', system-ui, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.34em;
+  /* optical centring: cancel trailing letter-spacing */
+  padding-left: 0.34em;
+  text-transform: uppercase;
+  color: var(--flap-ink);
+  opacity: 0.9;
+}
+
+/* --------------------------------------------------------------------------
+   Button
+   -------------------------------------------------------------------------- */
+.open-btn {
+  min-height: 48px;
+  padding: 0 1.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease;
+}
+
+.open-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.open-btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.open-btn:disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Utilities
+   -------------------------------------------------------------------------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .envelope,
+  .card__hover {
+    transition: none;
+  }
+}
