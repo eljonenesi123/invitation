@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import SignatureReveal from './SignatureReveal.jsx';
 import ShieldMark from './ShieldMark.jsx';
+import { DURATION, EASE, REDUCED_MAX, STAGGER } from '../motion.js';
 import './SignatureConfirmation.css';
 
 /*
@@ -21,7 +22,7 @@ export default function SignatureConfirmation({ guestName, onDone }) {
   const after = (delay = 0) => ({
     initial: reduce ? { opacity: 0 } : { opacity: 0, y: 6 },
     animate: signed ? { opacity: 1, y: 0 } : undefined,
-    transition: { duration: reduce ? 0.15 : 0.6, delay: reduce ? 0 : delay, ease: [0.33, 0, 0.15, 1] },
+    transition: { duration: reduce ? REDUCED_MAX : DURATION.medium, delay: reduce ? 0 : delay, ease: EASE.enter },
   });
 
   return (
@@ -36,7 +37,7 @@ export default function SignatureConfirmation({ guestName, onDone }) {
         <span className="sig__line" aria-hidden="true" />
       </div>
 
-      <motion.div className="sig__closing" {...after(0.1)}>
+      <motion.div className="sig__closing" {...after(0)}>
         <span className="sig__seal" aria-hidden="true">
           <ShieldMark size={22} strokeWidth={1.5} />
         </span>
@@ -48,7 +49,7 @@ export default function SignatureConfirmation({ guestName, onDone }) {
         className="sig__done"
         onClick={onDone}
         disabled={!signed}
-        {...after(0.5)}
+        {...after(STAGGER * 3)}
       >
         Done
       </motion.button>

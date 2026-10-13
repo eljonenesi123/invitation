@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import SignatureConfirmation from './SignatureConfirmation.jsx';
+import { DURATION, EASE, REDUCED_MAX } from '../motion.js';
 import './CardBack.css';
 
 const EVENT = {
@@ -172,13 +173,15 @@ export default function CardBack({
   };
 
   // Reduced motion: opacity only, near-instant
+  const fade = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: REDUCED_MAX } };
+
+  // Inline reply swap — a small acknowledgement: short tier
   const swap = reduce
-    ? { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.12 } }
+    ? fade
     : {
         initial: { opacity: 0, y: 4 },
-        animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0, y: -4 },
-        transition: { duration: 0.3, ease: [0.33, 0, 0.15, 1] },
+        animate: { opacity: 1, y: 0, transition: { duration: DURATION.short, ease: EASE.enter } },
+        exit: { opacity: 0, y: -4, transition: { duration: DURATION.short, ease: EASE.exit } },
       };
 
   const backToDetails = () => {
@@ -187,14 +190,14 @@ export default function CardBack({
     articleRef.current?.focus({ preventScroll: true });
   };
 
-  // Page turn: fade + slight scale (opacity only with reduced motion)
+  // Page turn: the old page leaves (short, exit), the new one settles in
+  // (medium, enter) — together a long-tier change, like the flip
   const turn = reduce
-    ? { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.15 } }
+    ? fade
     : {
         initial: { opacity: 0, scale: 0.96 },
-        animate: { opacity: 1, scale: 1 },
-        exit: { opacity: 0, scale: 0.96 },
-        transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
+        animate: { opacity: 1, scale: 1, transition: { duration: DURATION.medium, ease: EASE.enter } },
+        exit: { opacity: 0, scale: 0.96, transition: { duration: DURATION.short, ease: EASE.exit } },
       };
 
   return (

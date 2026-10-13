@@ -12,7 +12,18 @@
   padding: 16cqw 8cqw 6.5cqw;
   color: var(--card-ink);
   text-align: center;
-  background: var(--card-paper);
+  /* Card stock: the shared light (bright at the top-left, a warm falloff
+     at the far corner, both barely there) over linen grain */
+  background:
+    linear-gradient(
+      var(--light-angle),
+      rgba(255, 255, 255, 0.5) 0%,
+      rgba(255, 255, 255, 0) 42%,
+      rgba(90, 70, 40, 0) 58%,
+      rgba(90, 70, 40, 0.06) 100%
+    ),
+    var(--paper-linen),
+    var(--card-paper);
 }
 
 /* Hairline frame, inset like a printed border */
