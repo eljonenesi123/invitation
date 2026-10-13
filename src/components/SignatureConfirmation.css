@@ -1,0 +1,124 @@
+/* ==========================================================================
+   RSVP confirmed — signature page on the card back (same navy face/frame)
+   ========================================================================== */
+.sig {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  text-align: center;
+  outline: none;
+}
+
+.sig__eyebrow {
+  margin: 0;
+  font-family: 'Montserrat', 'Inter', system-ui, sans-serif;
+  font-size: clamp(11px, 2.5cqw, 12.5px);
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  padding-left: 0.3em;
+  text-transform: uppercase;
+  color: var(--back-gold);
+}
+
+.sig__lead {
+  margin: var(--gap-s) 0 0;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: clamp(18px, 4.2cqw, 21px);
+  line-height: 1.4;
+  color: var(--back-text);
+  text-wrap: balance;
+}
+
+/* Signature over a fine gold signing line */
+.sig__signing {
+  width: 100%;
+  margin-top: clamp(28px, 7cqw, 40px);
+  /* Cream-gold ink, a touch lighter than the UI gold */
+  --sig-ink: #e3c98f;
+}
+
+.sig__name {
+  width: 100%;
+  max-height: 34cqw;
+  margin-inline: auto;
+}
+
+.sig__line {
+  display: block;
+  width: 78%;
+  height: 1px;
+  margin: 2px auto 0;
+  background: linear-gradient(90deg, transparent, var(--back-rule-strong) 15% 85%, transparent);
+}
+
+.sig__closing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap-s);
+  margin-top: clamp(28px, 7cqw, 40px);
+}
+
+/* Small wax-seal disc with the ComplyOn mark pressed in */
+.sig__seal {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #5c4214;
+  background: radial-gradient(circle at 35% 30%, #f0d48e, #c9a24a 55%, #8e6b24);
+  box-shadow:
+    inset 0 0 0 3px rgba(142, 107, 36, 0.55),
+    inset 0 0 0 4px rgba(240, 212, 142, 0.35),
+    0 4px 10px -4px rgba(0, 0, 0, 0.6);
+}
+
+.sig__welcome {
+  margin: 0;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(17px, 3.9cqw, 19px);
+  line-height: 1.45;
+  color: var(--back-heading);
+  text-wrap: balance;
+}
+
+.sig__done {
+  margin-top: clamp(32px, 9cqw, 48px);
+  min-height: 44px;
+  padding: 0 1.4em;
+  border: 1px solid var(--back-rule);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--back-muted);
+  font-family: 'Montserrat', 'Inter', system-ui, sans-serif;
+  font-size: clamp(11px, 2.4cqw, 12px);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-indent: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color 200ms,
+    border-color 200ms;
+}
+
+.sig__done:hover:not(:disabled) {
+  color: var(--back-heading);
+  border-color: var(--back-rule-strong);
+}
+
+.sig__done:focus-visible {
+  outline: 2px solid var(--back-gold);
+  outline-offset: 3px;
+}
+
+.sig__done:disabled {
+  cursor: default;
+}

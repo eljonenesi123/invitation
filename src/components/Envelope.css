@@ -70,21 +70,28 @@
   --logo-h: clamp(36px, min(12vw, 9svh), 72px);
   --logo-gap: clamp(2.5rem, 6vh, 3.5rem);
 
-  /* Card: 5:7 portrait like the mockup (taller on narrow phones, below),
-     bounded so it plus the "turn over" button fit the viewport. */
+  /* Card: 5:7 portrait like the mockup (taller on narrow phones, below).
+     The front is bounded so it plus the "turn over" button fit the
+     viewport; the back grows past it to fit its content (page scrolls). */
   --card-ratio: 1.4;
-  --card-w: min(92vw, 26rem, calc((100svh - 6.5rem) / var(--card-ratio)));
+  --card-w: min(92vw, 30rem, calc((100svh - 6.5rem) / var(--card-ratio)));
 
   position: relative;
-  min-height: 100vh;
-  min-height: 100svh;
+  /* --extend (set from JS) lengthens the page below a back face taller
+     than the viewport; the matching padding keeps the content box — and so
+     the centred envelope — exactly where it was. */
+  min-height: calc(100vh + var(--extend, 0px));
+  min-height: calc(100svh + var(--extend, 0px));
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--scene-gap);
-  padding: 1.5rem 1rem calc(1.5rem + env(safe-area-inset-bottom));
+  padding: 1.5rem 1rem calc(1.5rem + env(safe-area-inset-bottom) + var(--extend, 0px));
   overflow: hidden;
+  /* clip, where supported: same clipping, but focus or scrollIntoView can't
+     scroll the scene itself and shift the card out of view */
+  overflow: clip;
   color: #fff;
   background: var(--brand-ink);
   isolation: isolate;
@@ -357,13 +364,21 @@
 }
 
 .card__face--back {
-  transform: rotateY(180deg);
+  /* Own height, at least the front's, centred on the flip axis */
+  top: 50%;
+  bottom: auto;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  container-type: inline-size;
+  transform: translateY(-50%) rotateY(180deg);
 }
 
 .card__turn {
   position: absolute;
   left: 50%;
-  top: calc(100% + 14px);
+  /* Below whichever face is showing (--face-h is set from JS) */
+  top: calc(50% + var(--face-h, 100%) / 2 + 14px);
   transform: translateX(-50%);
   min-height: 44px;
   padding: 0 1.25rem;
@@ -379,7 +394,9 @@
   white-space: nowrap;
   cursor: pointer;
   pointer-events: auto;
-  transition: color 200ms ease;
+  transition:
+    color 200ms ease,
+    top 800ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card__turn:hover:not(:disabled) {
@@ -472,7 +489,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .envelope,
-  .card__hover {
+  .card__hover,
+  .card__turn {
     transition: none;
   }
 }

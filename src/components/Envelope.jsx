@@ -1,4 +1,4 @@
-import { useCallback, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import envelopeSrc from '../assets/envelope.jpg';
 // irislogo.png trimmed to its artwork (the original is 501×501, mostly empty)
@@ -103,6 +103,7 @@ const TUCK_MAX_WIDTH = 0.8;
 const RISE_BOTTOM = 0.3;
 const RISE_TILT = -3;
 const HINT_SPACE = 64; // room under the settled card for the "turn over" button
+const PAGE_MARGIN = 16; // min gap above a face taller than the viewport
 
 function measureCard(scene, envelope, card) {
   const stage = envelope.parentElement;
@@ -112,8 +113,9 @@ function measureCard(scene, envelope, card) {
   const cardH = card.offsetHeight;
   if (!envH || !cardH) return null;
 
-  // Layout positions only (offsetTop ignores transforms), relative to viewport.
-  const envTop = scene.getBoundingClientRect().top + stage.offsetTop;
+  // Layout positions only (offsetTop ignores transforms), in page coordinates
+  // so a resize while the page is scrolled doesn't shift the targets.
+  const envTop = scene.offsetTop + stage.offsetTop;
   const envCenter = envTop + envH / 2;
 
   const scale = Math.min((TUCK_HEIGHT * envH) / cardH, (TUCK_MAX_WIDTH * envW) / cardW);
@@ -125,6 +127,10 @@ function measureCard(scene, envelope, card) {
     tuckY: envTop + TUCK_TOP * envH + half - envCenter,
     riseY: envTop + RISE_BOTTOM * envH - half - envCenter,
     finalY: (window.innerHeight - HINT_SPACE) / 2 - envCenter,
+    // Settled centre in page px — used to push a tall back face down so its
+    // top stays on-screen and the page (not the card) scrolls for the rest.
+    centerY: (window.innerHeight - HINT_SPACE) / 2,
+    cardH,
   };
 }
 
@@ -302,12 +308,16 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
   const [phase, setPhase] = useState('closed');
   const [flipped, setFlipped] = useState(false);
   const [geo, setGeo] = useState(null);
+  // Natural height of the back face: it grows to fit its content rather
+  // than being locked to the front's print ratio.
+  const [backH, setBackH] = useState(0);
   const reduce = useReducedMotion();
   const dur = (d) => (reduce ? Math.min(d, 0.2) : d);
 
   const sceneRef = useRef(null);
   const envelopeRef = useRef(null);
   const cardRef = useRef(null);
+  const backRef = useRef(null);
 
   const cracked = atLeast(phase, 'cracking');
   const sealGone = atLeast(phase, 'sealOpening');
@@ -328,6 +338,33 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
     return () => window.removeEventListener('resize', measure);
   }, [measure]);
 
+  // offsetHeight is layout size, unaffected by the card's scale transforms
+  useLayoutEffect(() => {
+    const el = backRef.current;
+    if (!el) return undefined;
+    const update = () => setBackH(el.offsetHeight);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Page length added below the scene while a tall back face shows. Turning
+  // back to the front scrolls up first and drops the extra length only once
+  // the flip has finished, so the page never jumps.
+  const [extend, setExtend] = useState(0);
+  const backExtend =
+    isOpen && geo ? Math.max(0, PAGE_MARGIN + Math.max(backH, geo.cardH) + HINT_SPACE - window.innerHeight) : 0;
+  useEffect(() => {
+    if (flipped) {
+      setExtend(backExtend);
+      return undefined;
+    }
+    if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    const t = setTimeout(() => setExtend(0), dur(TIMING.flip) * 1000);
+    return () => clearTimeout(t);
+  }, [flipped, backExtend, reduce]);
+
   const start = () => {
     if (phase === 'closed') setPhase('cracking');
   };
@@ -345,8 +382,9 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
   };
 
   const onCardClick = (e) => {
-    // Let links on the card (RSVP email) work without turning it over.
-    if (e.target.closest('a')) return;
+    // Let links and buttons on the card (RSVP, calendar, directions) work
+    // without turning it over.
+    if (e.target.closest('a, button')) return;
     flip();
   };
 
@@ -362,10 +400,22 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
       cardTarget = { y: geo.finalY, scale: 1, rotate: 0 };
       cardTransition = { duration: dur(TIMING.cardForward), ease: EASE_CARD_FORWARD };
     }
+    if (isOpen) {
+      // A back face taller than the viewport starts PAGE_MARGIN from the top
+      const faceH = flipped ? Math.max(backH, geo.cardH) : geo.cardH;
+      cardTarget.y += Math.max(0, PAGE_MARGIN + faceH / 2 - geo.centerY);
+      cardTransition = { duration: dur(TIMING.flip), ease: EASE };
+    }
   }
+  const faceH = flipped && geo ? Math.max(backH, geo.cardH) : geo?.cardH;
 
   return (
-    <main ref={sceneRef} className="scene" data-phase={phase}>
+    <main
+      ref={sceneRef}
+      className="scene"
+      data-phase={phase}
+      style={extend ? { '--extend': `${extend}px` } : undefined}
+    >
       {/* Letterhead: brand mark above the envelope, landing screen only */}
       <motion.img
         className="brand-logo"
@@ -430,7 +480,11 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
             <motion.div
               ref={cardRef}
               className={`card${isOpen ? ' card--interactive' : ''}`}
-              style={{ visibility: geo ? 'visible' : 'hidden' }}
+              style={{
+                visibility: geo ? 'visible' : 'hidden',
+                // Height of the visible face, for the "turn over" button
+                '--face-h': faceH ? `${faceH}px` : '100%',
+              }}
               initial={false}
               animate={cardTarget}
               transition={cardTransition}
@@ -458,6 +512,7 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
                     {front}
                   </div>
                   <div
+                    ref={backRef}
                     className="card__face card__face--back"
                     aria-hidden={!isOpen || !flipped}
                     inert={!isOpen || !flipped}

@@ -1,28 +1,47 @@
 /* ==========================================================================
    Card back — details & RSVP (navy mockup)
-   cqw = 1% of card width; clamps keep text legible on small phones.
+   The face sizes to its content (never scrolls inside); cqw = 1% of card
+   width, with clamp() floors so body copy stays ≥16px on phones.
    ========================================================================== */
 .back {
-  position: absolute;
-  inset: 0;
+  /* Spacing scale between blocks */
+  --gap-xs: clamp(6px, 1.6cqw, 8px);
+  --gap-s: clamp(12px, 3cqw, 16px);
+  --gap-m: clamp(18px, 4cqw, 20px);
+  --gap-l: clamp(22px, 4.8cqw, 24px);
+
+  position: relative;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 6cqw 9cqw 5cqw;
+  padding: clamp(36px, 8.5cqw, 44px) clamp(30px, 9cqw, 46px) clamp(28px, 6.5cqw, 32px);
   color: var(--back-text);
   text-align: center;
   background: var(--back-navy);
-  /* Last resort on very short screens (landscape phones): scroll inside */
-  overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
+/* Hairline frame, inset like the front's printed border */
 .back::before {
   content: '';
   position: absolute;
-  inset: 3.7cqw;
+  inset: 4cqw;
   border: 1px solid var(--back-rule);
   pointer-events: none;
+}
+
+.back:focus {
+  outline: none;
+}
+
+/* One "page" of the back: the details, or the RSVP-confirmed signature */
+.back__page {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 :where(.back) p {
@@ -38,22 +57,39 @@
 .back__city,
 .back__rsvp-label,
 .back__email,
-.back__brand,
-.back__tagline {
+.back__btn,
+.back__calendar,
+.back__footer {
   font-family: 'Montserrat', 'Inter', system-ui, sans-serif;
   text-transform: uppercase;
 }
 
-.back__dear {
+/* Serif text */
+.back__subhead,
+.back__text,
+.back__rsvp-text,
+.back__thanks,
+.back__countdown {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 500;
+}
+
+/* Script */
+.back__dear,
+.back__closing {
   font-family: 'Pinyon Script', 'Great Vibes', cursive;
-  font-size: clamp(22px, 7cqw, 32px);
+  font-weight: 400;
   line-height: 1.2;
   color: var(--back-heading);
 }
 
+.back__dear {
+  font-size: clamp(32px, 8.4cqw, 40px);
+}
+
 .back__eyebrow {
-  margin-top: 1.6cqw;
-  font-size: clamp(8px, 1.9cqw, 9px);
+  margin-top: var(--gap-s);
+  font-size: clamp(10.5px, 2.4cqw, 12px);
   font-weight: 500;
   letter-spacing: 0.24em;
   padding-left: 0.24em;
@@ -61,22 +97,20 @@
 }
 
 .back__headline {
-  margin: 2.4cqw 0 0;
-  font-size: clamp(12px, 3.5cqw, 16px);
+  margin: var(--gap-s) 0 0;
+  font-size: clamp(17px, 4.1cqw, 20px);
   font-weight: 500;
-  line-height: 1.38;
-  letter-spacing: 0.08em;
+  line-height: 1.35;
+  letter-spacing: 0.06em;
   color: var(--back-heading);
   text-wrap: balance;
 }
 
 .back__subhead {
-  margin-top: 2cqw;
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  margin-top: var(--gap-s);
   font-style: italic;
-  font-weight: 500;
-  font-size: clamp(12px, 3cqw, 14px);
-  line-height: 1.35;
+  font-size: clamp(17px, 3.9cqw, 20px);
+  line-height: 1.4;
   color: var(--back-text);
   text-wrap: balance;
 }
@@ -85,9 +119,10 @@
 .back__divider {
   position: relative;
   display: block;
-  width: 24cqw;
+  flex: none;
+  width: 26cqw;
   height: 1px;
-  margin: 3cqw 0;
+  margin: var(--gap-m) 0;
   background: linear-gradient(
     90deg,
     var(--back-rule-strong) 0 42%,
@@ -100,8 +135,8 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
   background: var(--back-gold);
   transform: translate(-50%, -50%) rotate(45deg);
 }
@@ -109,60 +144,108 @@
 .back__text {
   display: flex;
   flex-direction: column;
-  gap: 2cqw;
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-weight: 500;
-  font-size: clamp(12px, 2.75cqw, 13px);
-  line-height: 1.38;
+  gap: var(--gap-s);
+  font-size: clamp(16px, 3.6cqw, 17.5px);
+  line-height: 1.5;
   color: var(--back-text);
   text-wrap: pretty;
 }
 
+/* Date · time / venue — the venue line is the directions link */
 .back__details {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 3.5cqw;
-  line-height: 1.75;
+  gap: var(--gap-xs);
+  margin-top: var(--gap-l);
+  font-size: clamp(11.5px, 2.7cqw, 13px);
+  line-height: 1.6;
 }
 
 .back__details time {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0 0.6em;
 }
 
 .back__date,
 .back__venue {
-  font-size: clamp(9px, 2.2cqw, 10px);
   font-weight: 600;
   letter-spacing: 0.14em;
   color: var(--back-heading);
 }
 
 .back__time {
-  font-size: clamp(9px, 2.2cqw, 10px);
   font-weight: 500;
   letter-spacing: 0.1em;
   color: var(--back-gold);
 }
 
-.back__city {
-  font-size: clamp(8px, 2cqw, 9px);
-  font-weight: 400;
-  letter-spacing: 0.2em;
+.back__sep {
+  color: var(--back-gold);
+}
+
+.back__venue-comma {
   color: var(--back-muted);
 }
 
+.back__city {
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  color: var(--back-muted);
+}
+
+.back__icon {
+  width: 1.25em;
+  height: 1.25em;
+  flex: none;
+}
+
+.back__venue-link {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 0.5em;
+  margin: calc(var(--gap-xs) * -1) 0;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 2px;
+}
+
+.back__venue-link .back__icon {
+  width: 1.4em;
+  height: 1.4em;
+  margin-left: 0.55em;
+  color: var(--back-gold);
+  transition: transform 200ms cubic-bezier(0.33, 0, 0.15, 1);
+}
+
+.back__venue-link:hover .back__venue,
+.back__venue-link:hover .back__city {
+  color: var(--back-gold);
+}
+
+@media (hover: hover) {
+  .back__venue-link:hover .back__icon {
+    transform: translateY(-2px);
+  }
+}
+
+/* RSVP */
 .back__rsvp {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 3.5cqw;
+  width: 100%;
+  margin-top: var(--gap-l);
 }
 
 .back__rsvp-label {
-  font-size: clamp(8px, 1.9cqw, 9px);
+  font-size: clamp(11px, 2.5cqw, 12.5px);
   font-weight: 600;
   letter-spacing: 0.26em;
   padding-left: 0.26em;
@@ -170,67 +253,284 @@
 }
 
 .back__rsvp-text {
-  margin-top: 0.8cqw;
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-weight: 500;
-  font-size: clamp(12px, 2.75cqw, 13px);
+  margin-top: var(--gap-xs);
+  font-size: clamp(16px, 3.7cqw, 18px);
+  line-height: 1.4;
   color: var(--back-text);
 }
 
 .back__email {
-  margin-top: 0.6cqw;
-  font-size: clamp(10px, 2.6cqw, 12px);
+  /* 44px-tall hit area */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.25em;
+  margin-block: -6px;
+  font-size: clamp(14px, 3.2cqw, 16px);
   font-weight: 500;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   text-transform: none;
   color: var(--back-heading);
   text-decoration: underline;
   text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-  /* 44px-tall hit area without changing the visual */
-  padding: 0.5em 0.25em;
-  margin-block: -0.5em;
+  text-underline-offset: 4px;
+}
+
+/* Mouse users don't need the 44px touch target */
+@media (pointer: fine) {
+  .back__email,
+  .back__venue-link {
+    min-height: 0;
+  }
+
+  .back__email {
+    margin-block: 2px 0;
+  }
+
+  .back__venue-link {
+    margin: 0;
+  }
 }
 
 .back__email:hover {
   color: var(--back-gold);
 }
 
-.back__email:focus-visible {
+/* Fixed height so swapping buttons ↔ thank-you doesn't shift the layout */
+.back__reply {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  margin-top: var(--gap-m);
+}
+
+.back__buttons {
+  display: flex;
+  justify-content: center;
+  gap: var(--gap-s);
+  width: 100%;
+}
+
+.back__btn,
+.back__calendar {
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 220ms cubic-bezier(0.33, 0, 0.15, 1),
+    box-shadow 220ms cubic-bezier(0.33, 0, 0.15, 1),
+    background-color 220ms,
+    border-color 220ms,
+    color 220ms;
+}
+
+.back__btn {
+  flex: 1 1 0;
+  max-width: 180px;
+  min-height: 48px;
+  padding: 0 1em;
+  border-radius: 2px;
+  font-size: clamp(12px, 2.7cqw, 13px);
+  letter-spacing: 0.2em;
+  text-indent: 0.2em; /* optically centre tracked caps */
+}
+
+/* Gold fill, navy text — ≈6.6:1 contrast */
+.back__btn--accept {
+  border: 1px solid var(--back-gold);
+  background: var(--back-gold);
+  color: var(--back-navy);
+  box-shadow: 0 2px 6px -2px rgba(0, 0, 0, 0.35);
+}
+
+.back__btn--decline {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: transparent;
+  color: var(--back-text);
+  font-weight: 500;
+}
+
+@media (hover: hover) {
+  .back__btn:hover,
+  .back__calendar:hover {
+    transform: translateY(-2px);
+  }
+
+  .back__btn--accept:hover {
+    background: #d4b26c;
+    box-shadow:
+      0 8px 18px -6px rgba(0, 0, 0, 0.5),
+      0 0 18px -2px rgba(201, 164, 92, 0.55);
+  }
+
+  .back__btn--decline:hover {
+    border-color: var(--back-rule-strong);
+    color: var(--back-heading);
+    box-shadow:
+      0 8px 16px -8px rgba(0, 0, 0, 0.5),
+      0 0 14px -4px rgba(201, 164, 92, 0.35);
+  }
+
+  .back__calendar:hover {
+    border-color: var(--back-gold);
+    color: var(--back-heading);
+    box-shadow: 0 0 14px -4px rgba(201, 164, 92, 0.45);
+  }
+}
+
+.back__btn:active,
+.back__calendar:active {
+  transform: translateY(0);
+}
+
+.back__venue-link:focus-visible,
+.back__email:focus-visible,
+.back__btn:focus-visible,
+.back__calendar:focus-visible {
   outline: 2px solid var(--back-gold);
-  outline-offset: 2px;
+  outline-offset: 3px;
   border-radius: 2px;
 }
 
-.back__closing {
-  margin-top: 3cqw;
-  font-family: 'Pinyon Script', 'Great Vibes', cursive;
-  font-size: clamp(17px, 5.2cqw, 24px);
-  line-height: 1.2;
+.back__thanks {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(17px, 4cqw, 20px);
   color: var(--back-heading);
 }
 
+.back__icon--check {
+  color: var(--back-gold);
+}
+
+.back__calendar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  min-height: 44px;
+  padding: 0 1.1em;
+  border: 1px solid var(--back-rule-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--back-gold);
+  font-size: clamp(11px, 2.4cqw, 12px);
+  letter-spacing: 0.12em;
+}
+
+.back__closing {
+  margin-top: var(--gap-l);
+  /* One line at every card width */
+  font-size: clamp(23px, 6cqw, 29px);
+  white-space: nowrap;
+}
+
+/* Countdown, calendar and brand line, pinned to the bottom of the face */
 .back__footer {
   margin-top: auto;
-  padding-top: 3cqw;
+  padding-top: var(--gap-m);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.9cqw;
+  gap: var(--gap-s);
+}
+
+/* Countdown and calendar share a row; they wrap onto two on phones */
+.back__occasion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-xs) 12px;
+  /* May use part of the side padding (still inside the frame) to stay on one row */
+  margin-inline: -3cqw;
+}
+
+.back__countdown {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: clamp(16px, 3.5cqw, 17px);
+  letter-spacing: 0.03em;
+  color: var(--back-gold);
+}
+
+.back__brandline {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.3em 0.9em;
+  margin: 0;
+  font-size: clamp(10px, 2.2cqw, 11px);
+  letter-spacing: 0.22em;
+  padding-left: 0.22em;
 }
 
 .back__brand {
-  font-size: clamp(9px, 2.1cqw, 10px);
   font-weight: 600;
-  letter-spacing: 0.26em;
-  padding-left: 0.26em;
   color: var(--back-heading);
 }
 
+.back__brandline-sep {
+  color: var(--back-rule-strong);
+}
+
 .back__tagline {
-  font-size: clamp(8px, 1.6cqw, 8.5px);
   font-weight: 500;
-  letter-spacing: 0.2em;
-  padding-left: 0.2em;
   color: var(--back-gold);
+}
+
+/* Phones: venue and brand line too long for one row — break them cleanly */
+@container (max-width: 400px) {
+  .back__venue {
+    flex-basis: 100%;
+  }
+
+  .back__venue-comma {
+    display: none;
+  }
+
+  .back__brandline {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .back__brandline-sep {
+    display: none;
+  }
+}
+
+/* Very narrow cards: stack the reply buttons */
+@container (max-width: 300px) {
+  .back__buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .back__btn {
+    flex: none;
+    width: 80%;
+    max-width: none;
+  }
+
+  .back__reply {
+    min-height: calc(96px + var(--gap-s));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back__btn,
+  .back__calendar,
+  .back__venue-link .back__icon {
+    transition: none;
+  }
+
+  .back__btn:hover,
+  .back__calendar:hover,
+  .back__venue-link:hover .back__icon {
+    transform: none;
+  }
 }

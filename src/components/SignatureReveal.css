@@ -1,0 +1,24 @@
+.signature {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.signature__ink {
+  fill: var(--sig-ink, var(--back-gold));
+}
+
+.signature__outline {
+  fill: none;
+  stroke: var(--sig-ink, var(--back-gold));
+  stroke-width: 0.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Geometry for the pen to follow — never painted */
+.signature__track {
+  fill: none;
+  stroke: none;
+}
