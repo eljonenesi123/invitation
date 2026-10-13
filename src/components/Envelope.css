@@ -186,7 +186,7 @@
   aspect-ratio: 578.5 / 415.84;
   perspective: 1200px;
   perspective-origin: 50% 0%;
-  transition: transform var(--dur-short) var(--ease-enter);
+  transition: transform 400ms cubic-bezier(0.33, 0, 0.15, 1);
 }
 
 .envelope--closed {
@@ -336,7 +336,8 @@
   margin-top: calc(var(--card-w) * var(--card-ratio) / -2);
 }
 
-/* Ambient shadow: a non-rotating layer the height of the visible face */
+/* Ambient shadow: a non-rotating layer the height of the visible face
+   (moves with the flip, so it shares the flip's timing) */
 .card__shadow {
   position: absolute;
   left: 3%;
@@ -345,8 +346,8 @@
   height: var(--face-h, 100%);
   pointer-events: none;
   transition:
-    top var(--dur-long) var(--ease-move),
-    height var(--dur-long) var(--ease-move);
+    top 800ms cubic-bezier(0.4, 0, 0.2, 1),
+    height 800ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card__shadow-caster {
@@ -362,7 +363,7 @@
   position: absolute;
   inset: 0;
   perspective: 1800px;
-  transition: transform var(--dur-short) var(--ease-enter);
+  transition: transform 300ms cubic-bezier(0.33, 0, 0.15, 1);
 }
 
 .card--interactive .card__hover {
@@ -429,8 +430,8 @@
   cursor: pointer;
   pointer-events: auto;
   transition:
-    color var(--dur-short) var(--ease-enter),
-    top var(--dur-long) var(--ease-move);
+    color 200ms ease,
+    top 800ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card__turn:hover:not(:disabled) {
@@ -487,8 +488,8 @@
   text-transform: uppercase;
   cursor: pointer;
   transition:
-    background-color var(--dur-short) var(--ease-enter),
-    border-color var(--dur-short) var(--ease-enter);
+    background-color 200ms ease,
+    border-color 200ms ease;
 }
 
 .open-btn:hover:not(:disabled) {

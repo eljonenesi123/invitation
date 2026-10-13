@@ -4,7 +4,6 @@ import envelopeSrc from '../assets/envelope.jpg';
 // irislogo.png trimmed to its artwork (the original is 501×501, mostly empty)
 import logoSrc from '../assets/irislogo-trimmed.png';
 import { SHIELD_PATH, CHECK_PATH } from './ShieldMark.jsx';
-import { DURATION, EASE, MOTION_CSS_VARS, REDUCED_MAX, STAGGER } from '../motion.js';
 import './Envelope.css';
 
 /*
@@ -28,23 +27,26 @@ const atLeast = (phase, target) => PHASES.indexOf(phase) >= PHASES.indexOf(targe
 const IMG_W = 736;
 const IMG_H = 920;
 
-// Durations and easing come from the shared motion config (../motion.js)
 const TIMING = {
-  crack: DURATION.short, // small: cracks appear (enter)
-  seal: DURATION.short, // small: the broken seal falls away (exit)
-  flap: DURATION.long, // big: flap folds back (move)
-  // Card presentation is one long-tier move split where the card clears the
-  // pocket: it leaves the pocket accelerating (exit), then comes forward
-  // decelerating (enter), so its speed is continuous across the seam.
-  cardRise: DURATION.short,
-  cardForward: DURATION.medium,
-  flip: DURATION.long, // big: card turns over (move)
+  crack: 0.25,
+  seal: 0.4,
+  flap: 0.7,
+  // Card pull-out: ~720ms (≈780ms with frame overhead), split at the moment it clears the pocket.
+  cardRise: 0.33,
+  cardForward: 0.39,
+  flip: 0.8,
 };
 
 // Landing reveal: logo leads, then the envelope, the invitation line, the button
-const ENTRANCE = { duration: DURATION.medium, lead: STAGGER, stagger: STAGGER };
-// Idle "breathing" on the seal while closed — an ambient loop, not a transition
+const ENTRANCE = { duration: 0.6, lead: 0.12, stagger: 0.15 };
+// Idle "breathing" on the seal while closed — barely perceptible
 const SEAL_BREATH = { scale: [1, 1.015, 1], duration: 3 };
+
+const EASE = [0.4, 0, 0.2, 1];
+const EASE_OUT = [0.33, 0, 0.15, 1];
+const EASE_FLAP = [0.55, 0, 0.3, 1];
+const EASE_CARD_RISE = [0.4, 0, 0.6, 1];
+const EASE_CARD_FORWARD = [0.2, 0.7, 0.25, 1];
 
 // Envelope body inside the photo: inset(26.8% 10.7% 28% 10.7%)
 const CLIP_WHOLE = 'inset(26.8% 10.7% 28% 10.7%)';
@@ -154,7 +156,7 @@ function SealPatch({ visible, duration }) {
       focusable="false"
       initial={false}
       animate={{ opacity: visible ? 1 : 0 }}
-      transition={{ duration, ease: EASE.exit }}
+      transition={{ duration, ease: EASE }}
     >
       <defs>
         <radialGradient id={`${id}-fade`} cx={x} cy={y} r="100" gradientUnits="userSpaceOnUse">
@@ -311,7 +313,7 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
   // than being locked to the front's print ratio.
   const [backH, setBackH] = useState(0);
   const reduce = useReducedMotion();
-  const dur = (d) => (reduce ? Math.min(d, REDUCED_MAX) : d);
+  const dur = (d) => (reduce ? Math.min(d, 0.2) : d);
 
   const sceneRef = useRef(null);
   const envelopeRef = useRef(null);
@@ -395,16 +397,16 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
       cardTarget = { y: geo.tuckY, scale: geo.scale, rotate: 0 };
     } else if (!cardInFront) {
       cardTarget = { y: geo.riseY, scale: geo.scale * 1.03, rotate: RISE_TILT };
-      cardTransition = { duration: dur(TIMING.cardRise), ease: EASE.exit };
+      cardTransition = { duration: dur(TIMING.cardRise), ease: EASE_CARD_RISE };
     } else {
       cardTarget = { y: geo.finalY, scale: 1, rotate: 0 };
-      cardTransition = { duration: dur(TIMING.cardForward), ease: EASE.enter };
+      cardTransition = { duration: dur(TIMING.cardForward), ease: EASE_CARD_FORWARD };
     }
     if (isOpen) {
       // A back face taller than the viewport starts PAGE_MARGIN from the top
       const faceH = flipped ? Math.max(backH, geo.cardH) : geo.cardH;
       cardTarget.y += Math.max(0, PAGE_MARGIN + faceH / 2 - geo.centerY);
-      cardTransition = { duration: dur(TIMING.flip), ease: EASE.move };
+      cardTransition = { duration: dur(TIMING.flip), ease: EASE };
     }
   }
   const faceH = flipped && geo ? Math.max(backH, geo.cardH) : geo?.cardH;
@@ -422,7 +424,7 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
       ref={sceneRef}
       className="scene"
       data-phase={phase}
-      style={{ ...MOTION_CSS_VARS, ...(extend ? { '--extend': `${extend}px` } : null) }}
+      style={extend ? { '--extend': `${extend}px` } : undefined}
     >
       {/* Letterhead: brand mark above the envelope, landing screen only */}
       <motion.img
@@ -434,18 +436,14 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
         draggable="false"
         initial={{ opacity: 0 }}
         animate={{ opacity: phase === 'closed' ? 1 : 0 }}
-        transition={
-          phase === 'closed'
-            ? { duration: ENTRANCE.duration, ease: EASE.enter }
-            : { duration: DURATION.short, ease: EASE.exit }
-        }
+        transition={{ duration: phase === 'closed' ? ENTRANCE.duration : 0.4, ease: EASE_OUT }}
       />
 
       <motion.div
         className="stage"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: ENTRANCE.duration, ease: EASE.enter, delay: ENTRANCE.lead }}
+        transition={{ duration: ENTRANCE.duration, ease: EASE_OUT, delay: ENTRANCE.lead }}
       >
         {/* Soft spotlight centred directly behind the envelope */}
         <div className="stage__glow" aria-hidden="true" />
@@ -460,7 +458,7 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
             aria-hidden="true"
             initial={false}
             animate={{ opacity: cardInFront ? 0.4 : 1 }}
-            transition={{ duration: dur(TIMING.cardForward), ease: EASE.enter }}
+            transition={{ duration: dur(TIMING.cardForward), ease: EASE }}
           />
 
           {/* Envelope interior, seen through the opening once the flap lifts */}
@@ -474,7 +472,7 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
               style={{ transformOrigin: FLAP_HINGE, zIndex: flapDone ? 1 : 4 }}
               initial={{ rotateX: 0 }}
               animate={{ rotateX: -180 }}
-              transition={{ duration: dur(TIMING.flap), ease: EASE.move }}
+              transition={{ duration: dur(TIMING.flap), ease: EASE_FLAP }}
               onAnimationComplete={advance('flapOpening', 'cardRising')}
             >
               <div className="flap__face flap__face--front" style={{ clipPath: CLIP_FLAP }}>
@@ -523,7 +521,7 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
                   className="card__shadow-caster"
                   initial={{ scaleX: 1 }}
                   animate={flips > 0 && !reduce ? { scaleX: [1, 0.84, 1] } : { scaleX: 1 }}
-                  transition={{ duration: dur(TIMING.flip), ease: EASE.move }}
+                  transition={{ duration: dur(TIMING.flip), ease: EASE }}
                 />
               </motion.div>
 
@@ -532,7 +530,7 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
                   className="card__flipper"
                   initial={false}
                   animate={{ rotateY: flipped ? 180 : 0 }}
-                  transition={{ duration: dur(TIMING.flip), ease: EASE.move }}
+                  transition={{ duration: dur(TIMING.flip), ease: EASE }}
                 >
                   <div
                     className="card__face card__face--front"
@@ -560,7 +558,7 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
                 aria-pressed={flipped}
                 initial={false}
                 animate={{ opacity: isOpen ? 1 : 0 }}
-                transition={{ duration: DURATION.short, ease: EASE.enter, delay: isOpen ? STAGGER : 0 }}
+                transition={{ duration: 0.4, delay: isOpen ? 0.2 : 0 }}
               >
                 {flipped ? 'Back to invitation' : 'View details & RSVP'}
               </motion.button>
@@ -608,7 +606,7 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
             transition={
               phase === 'closed' && !reduce
                 ? { duration: SEAL_BREATH.duration, ease: 'easeInOut', repeat: Infinity }
-                : { duration: dur(TIMING.seal), ease: EASE.exit }
+                : { duration: dur(TIMING.seal), ease: EASE }
             }
             onAnimationComplete={advance('sealOpening', 'flapOpening')}
           >
@@ -621,7 +619,7 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
               focusable="false"
               initial={false}
               animate={{ opacity: cracked ? 1 : 0 }}
-              transition={{ duration: dur(TIMING.crack), ease: EASE.enter }}
+              transition={{ duration: dur(TIMING.crack), ease: EASE }}
               onAnimationComplete={advance('cracking', 'sealOpening')}
             >
               {CRACKS.map((d) => (
@@ -642,8 +640,8 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
           animate={phase === 'closed' ? { opacity: 1, y: 0 } : { opacity: 0, y: 0 }}
           transition={
             phase === 'closed'
-              ? { duration: ENTRANCE.duration, ease: EASE.enter, delay: ENTRANCE.lead + ENTRANCE.stagger }
-              : { duration: DURATION.short, ease: EASE.exit }
+              ? { duration: ENTRANCE.duration, ease: EASE_OUT, delay: ENTRANCE.lead + ENTRANCE.stagger }
+              : { duration: 0.4 }
           }
         >
           You’re cordially invited
@@ -657,8 +655,8 @@ export default function Envelope({ front, back, onOpened, onFlip }) {
           animate={phase === 'closed' ? { opacity: 1, y: 0 } : { opacity: 0, y: 0 }}
           transition={
             phase === 'closed'
-              ? { duration: ENTRANCE.duration, ease: EASE.enter, delay: ENTRANCE.lead + ENTRANCE.stagger * 2 }
-              : { duration: DURATION.short, ease: EASE.exit }
+              ? { duration: ENTRANCE.duration, ease: EASE_OUT, delay: ENTRANCE.lead + ENTRANCE.stagger * 2 }
+              : { duration: 0.4 }
           }
         >
           Open Invitation

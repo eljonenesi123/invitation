@@ -105,8 +105,8 @@
   text-transform: uppercase;
   cursor: pointer;
   transition:
-    color var(--dur-short) var(--ease-enter),
-    border-color var(--dur-short) var(--ease-enter);
+    color 200ms,
+    border-color 200ms;
 }
 
 .sig__done:hover:not(:disabled) {
